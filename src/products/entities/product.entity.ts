@@ -1,11 +1,3 @@
-import {
-  Entity,
-  Column,
-  PrimaryGeneratedColumn,
-  CreateDateColumn,
-  UpdateDateColumn,
-} from 'typeorm';
-
 export enum ProductCategory {
   HOTEL = 'hotel',
   GOLF = 'golf',
@@ -14,57 +6,24 @@ export enum ProductCategory {
   INSURANCE = 'insurance',
 }
 
-@Entity('products')
-export class Product {
-  @PrimaryGeneratedColumn('uuid')
+export interface Product {
   id: string;
-
-  @Column({ type: 'varchar', length: 255 })
   title: string;
-
-  @Column({ type: 'text', nullable: true })
-  description: string;
-
-  @Column({ type: 'varchar', length: 100 })
+  description?: string;
   location: string;
-
-  @Column({ type: 'varchar', length: 100 })
   country: string;
-
-  @Column({ type: 'varchar', length: 50 })
   duration: string;
-
-  @Column({ type: 'decimal', precision: 10, scale: 2 })
   price: number;
-
-  @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
-  originalPrice: number;
-
-  @Column({ type: 'decimal', precision: 3, scale: 2, nullable: true })
-  rating: number;
-
-  @Column({ type: 'varchar', length: 500 })
+  originalPrice?: number;
+  rating?: number;
   imageUrl: string;
-
-  @Column({
-    type: 'enum',
-    enum: ProductCategory,
-    default: ProductCategory.TOUR,
-  })
   category: ProductCategory;
-
-  @Column({ type: 'boolean', default: true })
   isActive: boolean;
-
-  @Column({ type: 'boolean', default: false })
   isFeatured: boolean;
-
-  @Column({ type: 'int', default: 0 })
   viewCount: number;
-
-  @CreateDateColumn()
-  createdAt: Date;
-
-  @UpdateDateColumn()
-  updatedAt: Date;
+  agencyId?: string;
+  minParticipants: number;
+  maxParticipants: number;
+  created?: string;
+  updated?: string;
 }

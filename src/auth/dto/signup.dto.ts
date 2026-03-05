@@ -44,6 +44,10 @@ export class SignupDto {
   agencyName?: string;
 
   @IsOptional()
+  @IsEmail({}, { message: '여행사 대표메일 형식이 올바르지 않습니다' })
+  agencyEmail?: string;
+
+  @IsOptional()
   @IsString()
   businessNumber?: string;
 

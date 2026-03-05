@@ -1,0 +1,26 @@
+{
+  "name": "products",
+  "type": "base",
+  "schema": [
+    {"id": "prod_title", "name": "title", "type": "text", "required": true, "options": {"min": 1, "max": 200, "pattern": ""}},
+    {"id": "prod_desc", "name": "description", "type": "text", "required": false, "options": {"min": null, "max": 5000, "pattern": ""}},
+    {"id": "prod_location", "name": "location", "type": "text", "required": true, "options": {"min": 1, "max": 100, "pattern": ""}},
+    {"id": "prod_country", "name": "country", "type": "text", "required": true, "options": {"min": 1, "max": 100, "pattern": ""}},
+    {"id": "prod_duration", "name": "duration", "type": "text", "required": true, "options": {"min": 1, "max": 50, "pattern": ""}},
+    {"id": "prod_price", "name": "price", "type": "number", "required": true, "options": {"min": 0, "max": null}},
+    {"id": "prod_original_price", "name": "originalPrice", "type": "number", "required": false, "options": {"min": 0, "max": null}},
+    {"id": "prod_image", "name": "imageUrl", "type": "text", "required": true, "options": {"min": 1, "max": 2000, "pattern": ""}},
+    {"id": "prod_category", "name": "category", "type": "text", "required": true, "options": {"min": 1, "max": 50, "pattern": ""}},
+    {"id": "prod_active", "name": "isActive", "type": "bool", "required": false, "options": {}},
+    {"id": "prod_featured", "name": "isFeatured", "type": "bool", "required": false, "options": {}},
+    {"id": "prod_view_count", "name": "viewCount", "type": "number", "required": false, "options": {"min": 0, "max": null}},
+    {"id": "prod_agency_id", "name": "agencyId", "type": "text", "required": false, "options": {"min": null, "max": 100, "pattern": ""}},
+    {"id": "prod_min_part", "name": "minParticipants", "type": "number", "required": false, "options": {"min": 0, "max": null}},
+    {"id": "prod_max_part", "name": "maxParticipants", "type": "number", "required": false, "options": {"min": 0, "max": null}}
+  ],
+  "listRule": "",
+  "viewRule": "",
+  "createRule": "",
+  "updateRule": "",
+  "deleteRule": ""
+}

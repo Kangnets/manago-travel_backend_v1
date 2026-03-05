@@ -1,9 +1,14 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { PocketbaseModule } from './pocketbase/pocketbase.module';
 import { ProductsModule } from './products/products.module';
 import { ReviewsModule } from './reviews/reviews.module';
 import { AuthModule } from './auth/auth.module';
+import { ReservationsModule } from './reservations/reservations.module';
+import { PaymentsModule } from './payments/payments.module';
+import { AttendanceModule } from './attendance/attendance.module';
+import { PassportCheckModule } from './passport-check/passport-check.module';
+import { NoticesModule } from './notices/notices.module';
 
 @Module({
   imports: [
@@ -11,19 +16,15 @@ import { AuthModule } from './auth/auth.module';
       isGlobal: true,
       envFilePath: '.env',
     }),
-    TypeOrmModule.forRoot({
-      type: 'postgres',
-      host: process.env.DB_HOST || 'localhost',
-      port: parseInt(process.env.DB_PORT) || 5432,
-      username: process.env.DB_USERNAME || 'postgres',
-      password: process.env.DB_PASSWORD || 'postgres',
-      database: process.env.DB_DATABASE || 'mango_travel',
-      autoLoadEntities: true,
-      synchronize: process.env.NODE_ENV === 'development',
-    }),
+    PocketbaseModule,
     AuthModule,
     ProductsModule,
     ReviewsModule,
+    ReservationsModule,
+    PaymentsModule,
+    AttendanceModule,
+    PassportCheckModule,
+    NoticesModule,
   ],
 })
 export class AppModule {}

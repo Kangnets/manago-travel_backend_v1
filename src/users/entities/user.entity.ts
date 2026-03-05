@@ -1,13 +1,3 @@
-import {
-  Entity,
-  Column,
-  PrimaryGeneratedColumn,
-  CreateDateColumn,
-  UpdateDateColumn,
-  BeforeInsert,
-} from 'typeorm';
-import * as bcrypt from 'bcrypt';
-
 export enum UserType {
   CUSTOMER = 'customer',
   AGENCY = 'agency',
@@ -19,74 +9,39 @@ export enum AuthProvider {
   KAKAO = 'kakao',
 }
 
-@Entity('users')
-export class User {
-  @PrimaryGeneratedColumn('uuid')
+/** 여행사 내 역할: 사장(owner) | 직원(employee) */
+export type AgencyRole = 'owner' | 'employee';
+
+export interface User {
   id: string;
-
-  @Column({ type: 'varchar', length: 100, unique: true })
   email: string;
-
-  @Column({ type: 'varchar', length: 255, nullable: true })
-  password: string;
-
-  @Column({ type: 'varchar', length: 100 })
+  password?: string;
   name: string;
-
-  @Column({ type: 'varchar', length: 20, nullable: true })
-  phone: string;
-
-  @Column({
-    type: 'enum',
-    enum: UserType,
-    default: UserType.CUSTOMER,
-  })
+  phone?: string;
   userType: UserType;
-
-  @Column({
-    type: 'enum',
-    enum: AuthProvider,
-    default: AuthProvider.LOCAL,
-  })
   provider: AuthProvider;
-
-  @Column({ type: 'varchar', length: 255, nullable: true })
-  providerId: string;
-
-  // 여행사 전용 필드
-  @Column({ type: 'varchar', length: 255, nullable: true })
-  agencyName: string;
-
-  @Column({ type: 'varchar', length: 50, nullable: true })
-  businessNumber: string;
-
-  @Column({ type: 'varchar', length: 50, nullable: true })
-  licenseNumber: string;
-
-  @Column({ type: 'text', nullable: true })
-  address: string;
-
-  @Column({ type: 'boolean', default: true })
+  providerId?: string;
+  agencyName?: string;
+  agencyEmail?: string;
+  businessNumber?: string;
+  licenseNumber?: string;
+  address?: string;
+  /** 여행사일 때만: owner(사장) | employee(직원) */
+  agencyRole?: AgencyRole;
+  /** 직원일 때만: 소속 사장(owner)의 user id */
+  agencyOwnerId?: string;
   isActive: boolean;
-
-  @Column({ type: 'boolean', default: false })
   isVerified: boolean;
+  created?: string;
+  updated?: string;
+}
 
-  @CreateDateColumn()
-  createdAt: Date;
-
-  @UpdateDateColumn()
-  updatedAt: Date;
-
-  @BeforeInsert()
-  async hashPassword() {
-    if (this.password && this.provider === AuthProvider.LOCAL) {
-      this.password = await bcrypt.hash(this.password, 10);
-    }
-  }
-
-  async validatePassword(password: string): Promise<boolean> {
-    if (!this.password) return false;
-    return await bcrypt.compare(password, this.password);
+export async function validatePassword(user: User, plainPassword: string): Promise<boolean> {
+  if (!user.password || !plainPassword) return false;
+  try {
+    const bcrypt = await import('bcrypt');
+    return bcrypt.compare(plainPassword, user.password);
+  } catch {
+    return false;
   }
 }
