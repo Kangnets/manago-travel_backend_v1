@@ -62,10 +62,11 @@ export class ProductsService {
     return mapRecordToProduct(record);
   }
 
-  async findAll(category?: string, location?: string, limit?: number): Promise<Product[]> {
+  async findAll(category?: string, location?: string, agencyId?: string, limit?: number): Promise<Product[]> {
     let filter = 'isActive = true';
     if (category) filter += ` && category = "${category}"`;
     if (location) filter += ` && location = "${location.replace(/"/g, '\\"')}"`;
+    if (agencyId) filter += ` && agencyId = "${agencyId}"`;
     const list = await this.pb.collection(COLLECTION).getList(1, limit || 500, {
       filter,
       sort: '-created',
