@@ -190,41 +190,59 @@ export class AgencyCustomizationsService {
       await (this.pb.pb as any).collections.create({
         name: COLLECTION,
         type: 'base',
-        schema: [
+        fields: [
           {
             name: 'agencyId',
             type: 'text',
+            system: false,
             required: true,
-            unique: false,
-            options: { min: 1, max: 100, pattern: '' },
+            presentable: false,
+            hidden: false,
+            min: 1,
+            max: 100,
+            pattern: '',
+            autogeneratePattern: '',
           },
           {
             name: 'slug',
             type: 'text',
+            system: false,
             required: false,
-            unique: false,
-            options: { min: null, max: 120, pattern: '^[a-z0-9-]*$' },
+            presentable: false,
+            hidden: false,
+            min: 0,
+            max: 120,
+            pattern: '^[a-z0-9-]*$',
+            autogeneratePattern: '',
           },
           {
             name: 'adminLanguage',
             type: 'select',
+            system: false,
             required: false,
-            unique: false,
-            options: { maxSelect: 1, values: ['ko', 'en'] },
+            presentable: false,
+            hidden: false,
+            maxSelect: 1,
+            values: ['ko', 'en'],
           },
           {
             name: 'serviceLanguage',
             type: 'select',
+            system: false,
             required: false,
-            unique: false,
-            options: { maxSelect: 1, values: ['ko', 'en'] },
+            presentable: false,
+            hidden: false,
+            maxSelect: 1,
+            values: ['ko', 'en'],
           },
           {
             name: 'settings',
             type: 'json',
+            system: false,
             required: true,
-            unique: false,
-            options: {},
+            presentable: false,
+            hidden: false,
+            maxSize: 0,
           },
         ],
         indexes: [
@@ -245,7 +263,9 @@ export class AgencyCustomizationsService {
         status === 400 &&
         (lowerMessage.includes('already exists') || lowerMessage.includes('duplicate'));
 
-      if (!alreadyExists) throw err;
+      if (!alreadyExists) {
+        this.handlePocketBaseError(err, 'ensureCollectionExists.create');
+      }
 
       this.collectionReady = true;
     }
