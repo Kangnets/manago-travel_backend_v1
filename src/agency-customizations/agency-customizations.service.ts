@@ -64,9 +64,11 @@ function mapRecordToCustomization(record: any): AgencyCustomization {
 @Injectable()
 export class AgencyCustomizationsService {
   constructor(private readonly pb: PocketBaseService) {}
+  private collectionReady = false;
 
   async findMyCustomization(agencyId: string): Promise<AgencyCustomization | null> {
     await this.ensurePocketBaseReady('findMyCustomization');
+    await this.ensureCollectionExists();
 
     try {
       const record = await this.findRecordByAgencyId(agencyId);
@@ -81,6 +83,7 @@ export class AgencyCustomizationsService {
     dto: SaveAgencyCustomizationDto,
   ): Promise<AgencyCustomization> {
     await this.ensurePocketBaseReady('upsertMyCustomization');
+    await this.ensureCollectionExists();
 
     const settings =
       dto.settings && typeof dto.settings === 'object' && !Array.isArray(dto.settings)
@@ -130,6 +133,7 @@ export class AgencyCustomizationsService {
 
   async findBySlug(slug: string): Promise<AgencyCustomization> {
     await this.ensurePocketBaseReady('findBySlug');
+    await this.ensureCollectionExists();
 
     const normalizedSlug = sanitizeSlug(slug);
     if (!normalizedSlug) {
@@ -156,6 +160,95 @@ export class AgencyCustomizationsService {
       filter: `agencyId = "${escapeFilterValue(agencyId)}"`,
     });
     return list.items[0] ?? null;
+  }
+
+  private async ensureCollectionExists(): Promise<void> {
+    if (this.collectionReady) return;
+
+    try {
+      // Fast existence check via list call.
+      await this.pb.collection(COLLECTION).getList(1, 1);
+      this.collectionReady = true;
+      return;
+    } catch (err: any) {
+      const status = err?.status ?? err?.response?.status;
+      const rawMessage =
+        err?.message ??
+        err?.response?.message ??
+        err?.response?.data?.message ??
+        '';
+      const lowerMessage = String(rawMessage).toLowerCase();
+      const isMissingCollection =
+        status === 404 &&
+        (lowerMessage.includes('missing collection') ||
+          lowerMessage.includes('collection context'));
+
+      if (!isMissingCollection) throw err;
+    }
+
+    try {
+      await (this.pb.pb as any).collections.create({
+        name: COLLECTION,
+        type: 'base',
+        schema: [
+          {
+            name: 'agencyId',
+            type: 'text',
+            required: true,
+            unique: false,
+            options: { min: 1, max: 100, pattern: '' },
+          },
+          {
+            name: 'slug',
+            type: 'text',
+            required: false,
+            unique: false,
+            options: { min: null, max: 120, pattern: '^[a-z0-9-]*$' },
+          },
+          {
+            name: 'adminLanguage',
+            type: 'select',
+            required: false,
+            unique: false,
+            options: { maxSelect: 1, values: ['ko', 'en'] },
+          },
+          {
+            name: 'serviceLanguage',
+            type: 'select',
+            required: false,
+            unique: false,
+            options: { maxSelect: 1, values: ['ko', 'en'] },
+          },
+          {
+            name: 'settings',
+            type: 'json',
+            required: true,
+            unique: false,
+            options: {},
+          },
+        ],
+        indexes: [
+          'CREATE UNIQUE INDEX `idx_agency_customizations_agency_id` ON `agency_customizations` (`agencyId`)',
+          'CREATE UNIQUE INDEX `idx_agency_customizations_slug` ON `agency_customizations` (`slug`)',
+        ],
+      });
+      this.collectionReady = true;
+    } catch (err: any) {
+      const status = err?.status ?? err?.response?.status;
+      const rawMessage =
+        err?.message ??
+        err?.response?.message ??
+        err?.response?.data?.message ??
+        '';
+      const lowerMessage = String(rawMessage).toLowerCase();
+      const alreadyExists =
+        status === 400 &&
+        (lowerMessage.includes('already exists') || lowerMessage.includes('duplicate'));
+
+      if (!alreadyExists) throw err;
+
+      this.collectionReady = true;
+    }
   }
 
   private async ensurePocketBaseReady(context: string): Promise<void> {
