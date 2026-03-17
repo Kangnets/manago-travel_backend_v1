@@ -5,8 +5,10 @@ import { Strategy } from 'passport-kakao';
 @Injectable()
 export class KakaoStrategy extends PassportStrategy(Strategy, 'kakao') {
   constructor() {
+    const clientID = process.env.KAKAO_CLIENT_ID || 'disabled-kakao-client-id';
+
     super({
-      clientID: process.env.KAKAO_CLIENT_ID,
+      clientID,
       callbackURL: process.env.KAKAO_CALLBACK_URL || 'http://localhost:3000/api/auth/kakao/callback',
     });
   }
