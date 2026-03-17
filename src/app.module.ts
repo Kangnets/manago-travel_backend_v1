@@ -9,6 +9,7 @@ import { PaymentsModule } from './payments/payments.module';
 import { AttendanceModule } from './attendance/attendance.module';
 import { PassportCheckModule } from './passport-check/passport-check.module';
 import { NoticesModule } from './notices/notices.module';
+import { AgencyCustomizationsModule } from './agency-customizations/agency-customizations.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { NoticesModule } from './notices/notices.module';
     AttendanceModule,
     PassportCheckModule,
     NoticesModule,
+    AgencyCustomizationsModule,
   ],
 })
 export class AppModule {}
