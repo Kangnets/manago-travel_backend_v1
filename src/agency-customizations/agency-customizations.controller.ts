@@ -1,10 +1,22 @@
-import { Body, Controller, Get, Param, Put, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  ForbiddenException,
+  Get,
+  Param,
+  Put,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthenticatedGuard } from '../auth/guards/authenticated.guard';
 import { AgencyCustomizationsService } from './agency-customizations.service';
 import { SaveAgencyCustomizationDto } from './dto/save-agency-customization.dto';
 
 /** 직원 계정은 agencyOwnerId, 오너는 자신의 id가 agencyId */
 function getEffectiveAgencyId(user: any): string {
+  if (!user || user.userType !== 'agency') {
+    throw new ForbiddenException('여행사 계정만 이용할 수 있습니다.');
+  }
   return user.agencyOwnerId || user.id;
 }
 

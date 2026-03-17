@@ -1,5 +1,6 @@
 import {
   Controller,
+  ForbiddenException,
   Get,
   Post,
   Patch,
@@ -20,6 +21,9 @@ import { ReservationStatus } from './entities/reservation.entity';
 
 /** 직원 계정은 agencyOwnerId, 오너는 자신의 id가 agencyId */
 function getEffectiveAgencyId(user: any): string {
+  if (!user || user.userType !== 'agency') {
+    throw new ForbiddenException('여행사 계정만 이용할 수 있습니다.');
+  }
   return user.agencyOwnerId || user.id;
 }
 
@@ -30,7 +34,7 @@ export class ReservationsController {
 
   @Post()
   create(@Req() req: any, @Body() createReservationDto: CreateReservationDto) {
-    return this.reservationsService.create(getEffectiveAgencyId(req.user), createReservationDto);
+    return this.reservationsService.create(req.user, createReservationDto);
   }
 
   @Get()

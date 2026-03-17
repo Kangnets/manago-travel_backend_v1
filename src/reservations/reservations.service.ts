@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PocketBaseService } from '../pocketbase/pocketbase.service';
 import { Reservation, ReservationStatus } from './entities/reservation.entity';
 import { Traveler } from './entities/traveler.entity';
@@ -63,6 +68,43 @@ function mapRecordToTraveler(record: any): Traveler {
 export class ReservationsService {
   constructor(private readonly pb: PocketBaseService) {}
 
+  private getEffectiveAgencyId(user: any): string {
+    return user?.agencyOwnerId || user?.id;
+  }
+
+  private async resolveReservationOwner(
+    user: any,
+    productId: string,
+  ): Promise<{ agencyId: string; customerId?: string }> {
+    const product = await this.pb.collection(PRODUCTS_COLLECTION).getOne(productId).catch(() => null);
+    if (!product) {
+      throw new NotFoundException(`예약할 상품을 찾을 수 없습니다. (ID: ${productId})`);
+    }
+
+    const productAgencyId = (product as any).agencyId as string | undefined;
+    const isAgencyUser = user?.userType === 'agency';
+
+    if (isAgencyUser) {
+      const agencyId = this.getEffectiveAgencyId(user);
+      if (!agencyId) {
+        throw new ForbiddenException('여행사 계정 정보가 올바르지 않습니다.');
+      }
+      if (productAgencyId && productAgencyId !== agencyId) {
+        throw new ForbiddenException('다른 여행사의 상품에는 예약을 생성할 수 없습니다.');
+      }
+      return { agencyId };
+    }
+
+    if (!productAgencyId) {
+      throw new BadRequestException('해당 상품에 연결된 여행사 정보가 없습니다.');
+    }
+
+    return {
+      agencyId: productAgencyId,
+      customerId: user?.id,
+    };
+  }
+
   private async generateReservationNumber(): Promise<string> {
     const today = new Date().toISOString().slice(0, 10).replace(/-/g, '');
     const list = await this.pb.collection(RESERVATIONS_COLLECTION).getList(1, 1, {
@@ -74,11 +116,16 @@ export class ReservationsService {
     return `MG-${today}-${sequence}`;
   }
 
-  async create(agencyId: string, createReservationDto: CreateReservationDto): Promise<Reservation> {
+  async create(user: any, createReservationDto: CreateReservationDto): Promise<Reservation> {
+    const { agencyId, customerId } = await this.resolveReservationOwner(
+      user,
+      createReservationDto.productId,
+    );
     const reservationNumber = await this.generateReservationNumber();
     const record = await this.pb.collection(RESERVATIONS_COLLECTION).create({
       ...createReservationDto,
       agencyId,
+      ...(customerId ? { customerId } : {}),
       reservationNumber,
       status: ReservationStatus.PENDING,
       paidAmount: 0,

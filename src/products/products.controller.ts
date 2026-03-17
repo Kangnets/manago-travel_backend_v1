@@ -1,5 +1,6 @@
 import {
   Controller,
+  ForbiddenException,
   Get,
   Post,
   Body,
@@ -18,6 +19,9 @@ import { AuthenticatedGuard } from '../auth/guards/authenticated.guard';
 
 /** 직원 계정은 agencyOwnerId, 오너는 자신의 id가 agencyId */
 function getEffectiveAgencyId(user: any): string {
+  if (!user || user.userType !== 'agency') {
+    throw new ForbiddenException('여행사 계정만 이용할 수 있습니다.');
+  }
   return user.agencyOwnerId || user.id;
 }
 
